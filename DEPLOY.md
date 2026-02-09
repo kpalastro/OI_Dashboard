@@ -199,7 +199,7 @@ The GitHub Actions workflow can SSH into your server after each push to `main` a
 **Prerequisites on the server:**
 
 - Docker installed; user used by GitHub can run `docker` (e.g. in `docker` group).
-- `/opt/oi-dashboard/.env` exists with correct DB and Flask settings.
+- **Project folder** `/home/kuldeep/Projects/OI_Dashboard` exists and contains `.env` with correct DB and Flask settings. (Path is set in workflow env `APP_PATH`; change it in `.github/workflows/ci.yml` if needed.)
 - Container network `n8n_default` exists (or change the workflow to your network name).
 - SSH access: key-based auth for the deploy user.
 
@@ -218,9 +218,9 @@ The GitHub Actions workflow can SSH into your server after each push to `main` a
    - `docker pull ghcr.io/<owner>/oi-dashboard:latest`
    - `docker stop oi-dashboard` (if running)
    - `docker rm oi-dashboard` (if exists)
-   - `docker run -d --name oi-dashboard ... --network n8n_default --env-file /opt/oi-dashboard/.env ...`
+   - `docker run -d --name oi-dashboard ... --network n8n_default --env-file "$APP_PATH/.env" ...` (where `APP_PATH` is `/home/kuldeep/Projects/OI_Dashboard` by default)
 
-**Customise:** Edit `.github/workflows/ci.yml` job `deploy-server` to change the Docker network, env file path, or run options. If you don’t set the secrets, the deploy-server job will fail but the workflow is marked `continue-on-error: true`, so the rest of CI still passes.
+**Customise:** Edit `.github/workflows/ci.yml` job `deploy-server` to change `APP_PATH`, the Docker network, or run options. If you don’t set the secrets, the deploy-server job will fail but the workflow is marked `continue-on-error: true`, so the rest of CI still passes.
 
 ---
 
