@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -23,7 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import database as db
+import database as db  # noqa: E402
 
 # Resolutions for bars (1m or 5m)
 RES_VARIANTS = ("1m", "1", "1min", "minute", "MINUTE", "ONE_MINUTE", "5", "5m", "5min")
@@ -91,11 +91,7 @@ def get_symbols_with_coverage(
     )
     rows = cur.fetchall()
     db.release_db_connection(conn)
-    return [
-        (row[0], row[1], row[2], row[3])
-        for row in rows
-        if row[1] and row[2]
-    ]
+    return [(row[0], row[1], row[2], row[3]) for row in rows if row[1] and row[2]]
 
 
 def pick_symbol_for_date(
@@ -212,7 +208,10 @@ def fib_levels(high: float, low: float) -> Dict[str, float]:
 # Entry level ratio -> key in fib dict
 ENTRY_RATIO_KEYS = {0.382: "ret_382", 0.5: "ret_5", 0.618: "ret_618", 0.786: "ret_786"}
 # Target extension ratio -> (above key, below key)
-TARGET_EXT_KEYS = {1.11: ("ext_111_above", "ext_111_below"), 1.272: ("ext_1272_above", "ext_1272_below")}
+TARGET_EXT_KEYS = {
+    1.11: ("ext_111_above", "ext_111_below"),
+    1.272: ("ext_1272_above", "ext_1272_below"),
+}
 
 
 def run_fib_day(
@@ -245,25 +244,25 @@ def run_fib_day(
     target: Optional[float] = None
 
     for i, b in enumerate(bars):
-        o, h, l, c = b["open"], b["high"], b["low"], b["close"]
+        o, h, low, c = b["open"], b["high"], b["low"], b["close"]
         if o is None or c is None:
             continue
         if side is not None:
             if side == "long":
-                if l <= stop_long:
+                if low <= stop_long:
                     return stop_long - entry_price, "long", "stop"
                 if h >= target:
                     return target - entry_price, "long", "target"
             else:
                 if h >= stop_short:
                     return entry_price - stop_short, "short", "stop"
-                if l <= target:
+                if low <= target:
                     return entry_price - target, "short", "target"
             continue
 
         allow_long = sides in ("both", "long_only")
         allow_short = sides in ("both", "short_only")
-        if allow_long and l <= ret_level and c > o and c > ret_level:
+        if allow_long and low <= ret_level and c > o and c > ret_level:
             entry_price = c
             side = "long"
             target = min(ext_above, prev_high + 1)
@@ -345,7 +344,8 @@ def backtest_exchange(
     for d, symbol, prev_high, prev_low, bars in days_data:
         fib = fib_levels(prev_high, prev_low)
         pnl, side, _ = run_fib_day(
-            bars, fib,
+            bars,
+            fib,
             stop_buffer_pts=stop_buffer,
             entry_ratio=entry_ratio,
             target_ext_ratio=target_ext_ratio,
@@ -396,7 +396,9 @@ def grid_search_best_intraday(
             for stop_buf in stop_buffers:
                 for sides in sides_list:
                     daily_pnl, daily_symbol, daily_side, total_pnl, _ = backtest_exchange(
-                        exchange, start_date, end_date,
+                        exchange,
+                        start_date,
+                        end_date,
                         entry_ratio=entry_ratio,
                         target_ext_ratio=target_ratio,
                         stop_buffer=stop_buf,
@@ -418,7 +420,9 @@ def grid_search_best_intraday(
                         best_symbol = dict(daily_symbol)
                         best_side = dict(daily_side)
 
-    daily_list = [(d, best_symbol[d], best_side[d], best_daily[d]) for d in sorted(best_daily.keys())]
+    daily_list = [
+        (d, best_symbol[d], best_side[d], best_daily[d]) for d in sorted(best_daily.keys())
+    ]
     return best_params, daily_list
 
 
@@ -428,11 +432,21 @@ def main() -> None:
     )
     parser.add_argument("--start", default="2025-12-01", help="Start date YYYY-MM-DD")
     parser.add_argument("--end", default="", help="End date YYYY-MM-DD (default: latest in DB)")
-    parser.add_argument("--exchange", action="append", default=[], help="BSE or NSE (repeat for both)")
-    parser.add_argument("--daily", action="store_true", help="Print daily PnL and symbol per exchange")
-    parser.add_argument("--best", action="store_true", help="Grid search for best intraday params (default)")
-    parser.add_argument("--no-best", action="store_true", help="Use fixed params instead of grid search")
-    parser.add_argument("--quick", action="store_true", help="Fewer param combos for faster grid search")
+    parser.add_argument(
+        "--exchange", action="append", default=[], help="BSE or NSE (repeat for both)"
+    )
+    parser.add_argument(
+        "--daily", action="store_true", help="Print daily PnL and symbol per exchange"
+    )
+    parser.add_argument(
+        "--best", action="store_true", help="Grid search for best intraday params (default)"
+    )
+    parser.add_argument(
+        "--no-best", action="store_true", help="Use fixed params instead of grid search"
+    )
+    parser.add_argument(
+        "--quick", action="store_true", help="Fewer param combos for faster grid search"
+    )
     args = parser.parse_args()
 
     start_date = datetime.strptime(args.start, "%Y-%m-%d").date()
@@ -441,7 +455,7 @@ def main() -> None:
     else:
         start_dt = datetime.combine(start_date, datetime.min.time())
         end_date = date.today()
-        for ex in (args.exchange or ["NSE", "BSE"]):
+        for ex in args.exchange or ["NSE", "BSE"]:
             latest = get_latest_date_in_db(ex, start_dt)
             if latest:
                 end_date = latest
@@ -488,7 +502,9 @@ def main() -> None:
         print(f"========== {exchange} ==========")
         if run_best and exchange in all_best_params:
             p = all_best_params[exchange]
-            print(f"  Best params: entry={p['entry_ratio']} target_ext={p['target_ext_ratio']} stop_buf={p['stop_buffer']} sides={p['sides']}")
+            print(
+                f"  Best params: entry={p['entry_ratio']} target_ext={p['target_ext_ratio']} stop_buf={p['stop_buffer']} sides={p['sides']}"
+            )
         print(f"  Total PnL (points): {total_pnl:.2f}  Trades: {trades}  Days: {len(daily_pnl)}")
         if daily_pnl:
             wins = sum(1 for p in daily_pnl.values() if p > 0)
@@ -510,7 +526,9 @@ def main() -> None:
         for d in all_dates:
             nse_pnl = nse_d.get(d, 0.0)
             bse_pnl = bse_d.get(d, 0.0)
-            print(f"  {d}  NSE: {nse_pnl:+.2f}  BSE: {bse_pnl:+.2f}  Combined: {nse_pnl + bse_pnl:+.2f}")
+            print(
+                f"  {d}  NSE: {nse_pnl:+.2f}  BSE: {bse_pnl:+.2f}  Combined: {nse_pnl + bse_pnl:+.2f}"
+            )
         print(f"  NSE total: {sum(nse_d.values()):.2f}  BSE total: {sum(bse_d.values()):.2f}")
     print("Done.")
 

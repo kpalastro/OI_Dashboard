@@ -13,11 +13,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
@@ -26,7 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import database as db
+import database as db  # noqa: E402
 
 # Resolutions treated as 1m
 RES_VARIANTS = ("1m", "1", "1min", "minute", "MINUTE", "ONE_MINUTE")
@@ -82,7 +81,9 @@ def load_oi_vol(exchange: str, start_dt: datetime, end_dt: datetime) -> pd.DataF
     return df
 
 
-def load_bars_1m(exchange: str, start_dt: datetime, end_dt: datetime, symbol: Optional[str] = None) -> Tuple[Optional[str], pd.DataFrame]:
+def load_bars_1m(
+    exchange: str, start_dt: datetime, end_dt: datetime, symbol: Optional[str] = None
+) -> Tuple[Optional[str], pd.DataFrame]:
     """Load 1m OHLC bars; if symbol not given, pick symbol with most bars. Returns (symbol, df)."""
     conn = db.get_db_connection()
     cur = conn.cursor()
@@ -381,13 +382,19 @@ def grid_search(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Backtest OI/Vol strategy day-by-day (ignore paper signals)")
+    parser = argparse.ArgumentParser(
+        description="Backtest OI/Vol strategy day-by-day (ignore paper signals)"
+    )
     parser.add_argument("--start", default="2026-01-19", help="Start date YYYY-MM-DD")
     parser.add_argument("--end", default="2026-01-31", help="End date YYYY-MM-DD")
-    parser.add_argument("--exchange", action="append", default=[], help="Exchange (BSE/NSE); repeat for both")
+    parser.add_argument(
+        "--exchange", action="append", default=[], help="Exchange (BSE/NSE); repeat for both"
+    )
     parser.add_argument("--top", type=int, default=10, help="Show top N strategies per exchange")
     parser.add_argument("--daily", action="store_true", help="Print daily PnL for best strategy")
-    parser.add_argument("--quick", action="store_true", help="Fewer rule/thresh/hold combos (faster)")
+    parser.add_argument(
+        "--quick", action="store_true", help="Fewer rule/thresh/hold combos (faster)"
+    )
     args = parser.parse_args()
 
     if not args.exchange:
@@ -396,7 +403,9 @@ def main():
     start_date = datetime.strptime(args.start, "%Y-%m-%d").date()
     end_date = datetime.strptime(args.end, "%Y-%m-%d").date()
 
-    print(f"Backtest: {args.start} to {args.end} using ITM CE/PE OI % & Volume % (3m wavg) only (no paper signals)\n")
+    print(
+        f"Backtest: {args.start} to {args.end} using ITM CE/PE OI % & Volume % (3m wavg) only (no paper signals)\n"
+    )
 
     for exchange in args.exchange:
         print(f"========== {exchange} ==========")
@@ -411,17 +420,24 @@ def main():
             continue
 
         best = results[0]
-        print(f"  Best strategy: rule={best['rule']} thresh={best['thresh']} hold_bars={best['hold_bars']}", end="")
+        print(
+            f"  Best strategy: rule={best['rule']} thresh={best['thresh']} hold_bars={best['hold_bars']}",
+            end="",
+        )
         if best.get("vol_weight") is not None:
             print(f" vol_weight={best['vol_weight']}", end="")
         print(f"  => total PnL = {best['total_pnl_points']} points in {best['num_trades']} trades")
         if best.get("best_day"):
-            print(f"  Best day: {best['best_day'].get('date')} PnL = {best['best_day'].get('pnl', 0):.2f} points")
+            print(
+                f"  Best day: {best['best_day'].get('date')} PnL = {best['best_day'].get('pnl', 0):.2f} points"
+            )
 
         print(f"\n  Top {args.top} strategies:")
         for i, r in enumerate(results[: args.top], 1):
             vw = f" vol_weight={r['vol_weight']}" if r.get("vol_weight") is not None else ""
-            print(f"    {i}. {r['rule']} thresh={r['thresh']} hold={r['hold_bars']}{vw} => {r['total_pnl_points']} pts ({r['num_trades']} trades)")
+            print(
+                f"    {i}. {r['rule']} thresh={r['thresh']} hold={r['hold_bars']}{vw} => {r['total_pnl_points']} pts ({r['num_trades']} trades)"
+            )
 
         if args.daily and best.get("daily_pnl"):
             print("\n  Daily PnL (best strategy):")

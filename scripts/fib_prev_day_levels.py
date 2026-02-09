@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -98,7 +98,9 @@ def main() -> None:
     )
     parser.add_argument("--high", type=float, help="Previous day high (manual)")
     parser.add_argument("--low", type=float, help="Previous day low (manual)")
-    parser.add_argument("--symbol", type=str, default="", help="Symbol (e.g. NIFTY 50) for DB fetch")
+    parser.add_argument(
+        "--symbol", type=str, default="", help="Symbol (e.g. NIFTY 50) for DB fetch"
+    )
     parser.add_argument("--exchange", type=str, default="NSE", help="Exchange (default NSE)")
     parser.add_argument(
         "--date",
@@ -135,7 +137,10 @@ def main() -> None:
             high, low = low, high
     else:
         parser.print_help()
-        print("\nProvide either (--high and --low) or --symbol (and optional --exchange, --date).", file=sys.stderr)
+        print(
+            "\nProvide either (--high and --low) or --symbol (and optional --exchange, --date).",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     levels = fib_levels(high, low)

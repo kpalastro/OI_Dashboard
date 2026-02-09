@@ -7,13 +7,14 @@ import os
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
 
 try:
     import psycopg2
-    from psycopg2 import pool
+
     POSTGRES_AVAILABLE = True
 except ImportError:
     POSTGRES_AVAILABLE = False
@@ -33,7 +34,8 @@ def get_db_connection():
     global pg_pool
     if pg_pool is None:
         pg_pool = psycopg2.pool.SimpleConnectionPool(
-            1, 50,
+            1,
+            50,
             user=os.getenv("OI_TRACKER_DB_USER", "root"),
             password=os.getenv("OI_TRACKER_DB_PASSWORD", ""),
             host=os.getenv("OI_TRACKER_DB_HOST", "localhost"),

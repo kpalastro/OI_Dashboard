@@ -21,23 +21,24 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime, timedelta, date, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-from flask import Flask, jsonify, request, Response
+from flask import Flask, Response, jsonify, request
 
 # Project root = OI_Dashboard (parent of scripts/)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import database as db
+import database as db  # noqa: E402
 
 app = Flask(__name__)
 
 try:
     from zoneinfo import ZoneInfo
+
     IST = ZoneInfo("Asia/Kolkata")
 except Exception:
     IST = None
@@ -196,13 +197,13 @@ def api_bars_1m() -> Response:
             (exchange, chosen_symbol, start_dt, end_dt, list(res_variants), limit),
         )
         rows = cur.fetchall()
-        for ts, o, h, l, c, v, oi in rows:
+        for ts, o, h, low, c, v, oi in rows:
             bars.append(
                 {
                     "time": _to_utc_epoch_seconds(ts),
                     "open": float(o) if o is not None else None,
                     "high": float(h) if h is not None else None,
-                    "low": float(l) if l is not None else None,
+                    "low": float(low) if low is not None else None,
                     "close": float(c) if c is not None else None,
                     "volume": int(v) if v is not None else None,
                     "oi": int(oi) if oi is not None else None,
@@ -229,7 +230,9 @@ def api_trade_logs() -> Response:
     - paper_trades_signal_changes_view: BUY/SELL signal changes for chart markers
     """
     exchange = (request.args.get("exchange") or "").upper().strip()
-    symbol = (request.args.get("symbol") or "").strip()  # signal_changes view has no symbol; kept for API compat
+    symbol = (
+        request.args.get("symbol") or ""
+    ).strip()  # signal_changes view has no symbol; kept for API compat
     outcome = (request.args.get("outcome") or "all").strip().lower()
     today = datetime.utcnow().date()
     default_start = today - timedelta(days=5)
@@ -257,13 +260,17 @@ def api_trade_logs() -> Response:
     try:
         cur.execute(view_query, view_params)
         for row in cur.fetchall():
-            daily_summary.append({
-                "trade_date": row[0].isoformat() if hasattr(row[0], "isoformat") else str(row[0]),
-                "exchange": row[1],
-                "reason": row[2],
-                "pnl": float(row[3]) if row[3] is not None else None,
-                "trades": int(row[4]) if row[4] is not None else 0,
-            })
+            daily_summary.append(
+                {
+                    "trade_date": row[0].isoformat()
+                    if hasattr(row[0], "isoformat")
+                    else str(row[0]),
+                    "exchange": row[1],
+                    "reason": row[2],
+                    "pnl": float(row[3]) if row[3] is not None else None,
+                    "trades": int(row[4]) if row[4] is not None else 0,
+                }
+            )
     except Exception:
         pass
 
@@ -294,17 +301,19 @@ def api_trade_logs() -> Response:
             if outcome == "loss" and not (pnl_float is not None and pnl_float < 0):
                 continue
             t_epoch = _to_utc_epoch_seconds(ts)
-            trades.append({
-                "symbol": None,
-                "exchange": ex,
-                "side": side,
-                "entry_time": t_epoch,
-                "exit_time": None,
-                "entry_price": None,
-                "exit_price": None,
-                "pnl": pnl_float,
-                "exit_reason": str(reason) if reason else None,
-            })
+            trades.append(
+                {
+                    "symbol": None,
+                    "exchange": ex,
+                    "side": side,
+                    "entry_time": t_epoch,
+                    "exit_time": None,
+                    "entry_price": None,
+                    "exit_price": None,
+                    "pnl": pnl_float,
+                    "exit_reason": str(reason) if reason else None,
+                }
+            )
     except Exception:
         pass
 
