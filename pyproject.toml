@@ -1,0 +1,14 @@
+[project]
+name = "oi-dashboard"
+version = "0.1.0"
+description = "OI + Volume dashboard using TradingView Lightweight Charts"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".git", ".github", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]  # line length handled by formatter

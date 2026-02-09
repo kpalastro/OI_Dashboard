@@ -11,6 +11,40 @@ ITM OI + Volume dashboard using TradingView Lightweight Charts. Based on `OI_New
   - ITM CE/PE OI % change (3m wavg) and Volume % change (3m wavg)
 - **Trade filter**: All / Profit only / Loss only
 
+## CI/CD
+
+GitHub Actions runs on every push and pull request to `main`:
+
+- **Test**: installs dependencies, checks Python syntax, and runs a quick import check (Python 3.10 and 3.11).
+- **Lint**: runs [Ruff](https://docs.astral.sh/ruff/) for linting and format checking.
+- **Deploy** (push to `main` only): builds a Docker image and pushes it to [GitHub Container Registry](https://ghcr.io) as `ghcr.io/<owner>/oi-dashboard:latest` and `ghcr.io/<owner>/oi-dashboard:<sha>`.
+
+To fix lint/format locally: `pip install ruff` then `ruff check . --fix` and `ruff format .`.
+
+### Run with Docker
+
+**Option A – Build and run locally** (no GHCR needed):
+
+```bash
+docker build -t oi-dashboard .
+docker run -p 5055:5055 --env-file .env oi-dashboard
+```
+
+**Option B – Pull from GitHub Container Registry (GHCR)**
+
+GHCR images are **private by default**, so you must either log in or make the package public.
+
+1. **Log in to GHCR** (use a [Personal Access Token](https://github.com/settings/tokens) with `read:packages`):
+
+   ```bash
+   echo YOUR_GITHUB_TOKEN | docker login ghcr.io -u kpalastro --password-stdin
+   docker pull ghcr.io/kpalastro/oi-dashboard:latest
+   docker run -p 5055:5055 --env-file .env ghcr.io/kpalastro/oi-dashboard:latest
+   ```
+
+2. **Or make the package public** so anyone can pull without logging in:
+   - GitHub → your profile → **Packages** → **oi-dashboard** → **Package settings** → **Danger zone** → **Change visibility** → **Public**
+
 ## Setup
 
 1. Copy `.env` and set PostgreSQL and Flask options:
