@@ -95,3 +95,30 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/oi-dashboard:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy-server:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    continue-on-error: true
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/oi-dashboard:latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE
+          script: |
+            set -e
+            docker pull $IMAGE
+            docker stop oi-dashboard 2>/dev/null || true
+            docker rm oi-dashboard 2>/dev/null || true
+            docker run -d --name oi-dashboard --restart unless-stopped \
+              -p 5055:5055 \
+              --network n8n_default \
+              --env-file /opt/oi-dashboard/.env \
+              $IMAGE
