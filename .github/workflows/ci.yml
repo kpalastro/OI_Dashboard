@@ -119,7 +119,7 @@ jobs:
             docker stop oi-dashboard 2>/dev/null || true
             docker rm oi-dashboard 2>/dev/null || true
             docker run -d --name oi-dashboard --restart unless-stopped \
-              -p 5055:5055 \
+              -p 7000:7000 \
               --network n8n_default \
               --env-file "$APP_PATH/.env" \
               $IMAGE

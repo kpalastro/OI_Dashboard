@@ -13,7 +13,7 @@ Run from project root:
     python scripts/oi_volume_dashboard.py
 
 Then open in browser:
-    http://127.0.0.1:5055/
+    http://127.0.0.1:7000/
 """
 
 from __future__ import annotations
@@ -715,5 +715,5 @@ def index() -> str:
 
 if __name__ == "__main__":
     host = os.getenv("FLASK_HOST", "127.0.0.1")
-    port = int(os.getenv("FLASK_PORT", "5055"))
+    port = int(os.getenv("FLASK_PORT", "7000"))
     app.run(host=host, port=port, debug=False)

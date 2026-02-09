@@ -13,8 +13,8 @@ COPY scripts/ scripts/
 
 # Flask listen on all interfaces in container
 ENV FLASK_HOST=0.0.0.0
-ENV FLASK_PORT=5055
+ENV FLASK_PORT=7000
 
-EXPOSE 5055
+EXPOSE 7000
 
 CMD ["python", "scripts/oi_volume_dashboard.py"]

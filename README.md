@@ -27,7 +27,7 @@ To fix lint/format locally: `pip install ruff` then `ruff check . --fix` and `ru
 
 ```bash
 docker build -t oi-dashboard .
-docker run -p 5055:5055 --env-file .env oi-dashboard
+docker run -p 7000:7000 --env-file .env oi-dashboard
 ```
 
 **Option B – Pull from GitHub Container Registry (GHCR)**
@@ -52,7 +52,7 @@ GHCR images are **private by default**, so you must either log in or make the pa
 - The **PostgreSQL container name** (e.g. `postgres` or `db`) when both containers are on the same Docker network, or
 - **`host.docker.internal`** when PostgreSQL runs on the host (e.g. Docker Desktop on Mac/Windows).
 
-Example (same network): `docker run --network mynet -p 5055:5055 -e OI_TRACKER_DB_HOST=postgres -e OI_TRACKER_DB_PORT=5433 --env-file .env oi-dashboard`
+Example (same network): `docker run --network mynet -p 7000:7000 -e OI_TRACKER_DB_HOST=postgres -e OI_TRACKER_DB_PORT=5433 --env-file .env oi-dashboard`
 
 ## Setup
 
@@ -92,7 +92,7 @@ python scripts/oi_volume_dashboard.py
 
 Then open in the browser:
 
-- **http://127.0.0.1:5055/** (or the host/port from `.env`)
+- **http://127.0.0.1:7000/** (or the host/port from `.env`)
 
 ## Database
 

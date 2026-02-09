@@ -48,7 +48,7 @@ OI_TRACKER_DB_USER=your_db_user
 OI_TRACKER_DB_PASSWORD=your_db_password
 
 FLASK_HOST=0.0.0.0
-FLASK_PORT=5055
+FLASK_PORT=7000
 ```
 
 Optional (if trade logs live elsewhere):
@@ -112,7 +112,7 @@ Requires=docker.service
 [Service]
 Type=simple
 ExecStartPre=-/usr/bin/docker pull ghcr.io/kpalastro/oi-dashboard:latest
-ExecStart=/usr/bin/docker run --rm --name oi-dashboard -p 5055:5055 --env-file /opt/oi-dashboard/.env ghcr.io/kpalastro/oi-dashboard:latest
+ExecStart=/usr/bin/docker run --rm --name oi-dashboard -p 7000:7000 --env-file /opt/oi-dashboard/.env ghcr.io/kpalastro/oi-dashboard:latest
 ExecStop=/usr/bin/docker stop oi-dashboard
 TimeoutStartSec=300
 TimeoutStopSec=30
@@ -157,7 +157,7 @@ If you want to serve the app behind Nginx with HTTPS (e.g. `https://dashboard.ex
        listen 80;
        server_name dashboard.example.com;
        location / {
-           proxy_pass http://127.0.0.1:5055;
+           proxy_pass http://127.0.0.1:7000;
            proxy_http_version 1.1;
            proxy_set_header Host $host;
            proxy_set_header X-Real-IP $remote_addr;
@@ -175,7 +175,7 @@ If you want to serve the app behind Nginx with HTTPS (e.g. `https://dashboard.ex
    sudo certbot --nginx -d dashboard.example.com
    ```
 
-4. The app still listens on `127.0.0.1:5055` (or bind Nginx to the same host). If the container binds to `0.0.0.0:5055`, use `proxy_pass http://127.0.0.1:5055;` so only Nginx talks to it.
+4. The app still listens on `127.0.0.1:7000` (or bind Nginx to the same host). If the container binds to `0.0.0.0:7000`, use `proxy_pass http://127.0.0.1:7000;` so only Nginx talks to it.
 
 ---
 
