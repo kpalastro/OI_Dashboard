@@ -638,7 +638,7 @@ def index() -> str:
               for (const t of trades) {
                 if (t.entry_time) {
                   markers.push({
-                    time: t.entry_time, position: 'belowBar',
+                    time: t.entry_time, position: t.side === 'SELL' ? 'aboveBar' : 'belowBar',
                     color: t.side === 'SELL' ? '#f97316' : '#22c55e',
                     shape: t.side === 'SELL' ? 'arrowDown' : 'arrowUp',
                     text: (t.side === 'BUY' ? 'B ' : 'S ') + (t.symbol || '').slice(-12),
